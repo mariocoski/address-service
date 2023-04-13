@@ -92,9 +92,10 @@ func (r *postgresAddressesRepo) GetAllPaginated(currentPage int, perPage int) (p
 	if currentPage == lastPage {
 		to = total
 	} else {
-		to = offset + len(addresses)
+		to = offset + perPage
 	}
 
+	// TODO: investigate the validity of the computations and add tests
 	paginationData := pagination.Pagination{
 		LastPage:    lastPage,
 		Total:       total,
