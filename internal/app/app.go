@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -17,12 +18,20 @@ const API_PATH = "/api"
 const ADDRESSES_PATH = "/addresses"
 
 type Dependencies struct {
-	AddressesRepository address_repo.AddressesRepository
-	Logger              *logger.Logger
-	Config              *config.Config
+	Logger *logger.Logger
+	Config *config.Config
 }
 
 func NewApplication(dependencies Dependencies) *chi.Mux {
+
+	addressesRepository, err := address_repo.NewAddressesRepository(*dependencies.Config)
+
+	getAddressesUseCase := get_addresses_use_case.NewUseCase(addressesRepository)
+	getAddressesHandler := get_addresses_controller.NewGetAddressesController(*dependencies.Logger, getAddressesUseCase)
+
+	if err != nil {
+		log.Fatal("Cannot instantiate repo", err)
+	}
 
 	mux := chi.NewRouter()
 
@@ -35,9 +44,6 @@ func NewApplication(dependencies Dependencies) *chi.Mux {
 	// through ctx.Done() that the request has timed out and further
 	// processing should be stopped.
 	mux.Use(middleware.Timeout(60 * time.Second))
-
-	getAddressesUseCase := get_addresses_use_case.NewUseCase(dependencies.AddressesRepository)
-	getAddressesHandler := get_addresses_controller.NewGetAddressesController(*dependencies.Logger, getAddressesUseCase)
 
 	mux.Route(fmt.Sprintf("%v%v", API_PATH, ADDRESSES_PATH), func(r chi.Router) {
 		// GET /api/addresses

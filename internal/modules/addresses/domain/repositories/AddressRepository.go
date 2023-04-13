@@ -7,29 +7,29 @@ import (
 
 	"github.com/mariocoski/address-service/internal/config"
 	domain "github.com/mariocoski/address-service/internal/modules/addresses/domain"
+	"github.com/mariocoski/address-service/internal/shared/core/pagination"
 	"github.com/mariocoski/address-service/internal/shared/database/postgres_driver"
 )
 
 type AddressesRepository interface {
-	GetAll() ([]*domain.Address, error)
-	// GetAllPaginated(page int, pageSize int) ([]*domain.Address, error)
+	GetAllPaginated(currentPage int, perPage int) (pagination.PaginationResult[domain.Address], error)
+	// GetAll() ([]*domain.Address, error)
 	// GetById(id int) (*domain.Address, error)
 	// Save(address *domain.Address) error
 }
 
 type AddresssRepoDependencies struct {
-	RepoType string
-	Config   *config.Config
+	Config *config.Config
 }
 
 type postgresAddressesRepo struct {
 	conn *sql.DB
 }
 
-func NewAddressesRepository(dependencies *AddresssRepoDependencies) (AddressesRepository, error) {
-	if dependencies.RepoType == "postgres" {
-		conn, err := postgres_driver.ConnectSQL(dependencies.Config.PostgresConnectionUrl)
-		log.Println("conn", dependencies.Config.PostgresConnectionUrl)
+func NewAddressesRepository(config config.Config) (AddressesRepository, error) {
+	if config.RepositoryType == "postgres" {
+		conn, err := postgres_driver.ConnectSQL(config.PostgresConnectionUrl)
+		log.Println("conn", config.PostgresConnectionUrl)
 		if err != nil {
 			return &postgresAddressesRepo{}, err
 		}
@@ -39,5 +39,5 @@ func NewAddressesRepository(dependencies *AddresssRepoDependencies) (AddressesRe
 		}, nil
 	}
 
-	return nil, fmt.Errorf("unknown RepoType, found: %v", dependencies.RepoType)
+	return nil, fmt.Errorf("unknown RepositoryType, found: %v", config.RepositoryType)
 }

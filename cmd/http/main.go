@@ -7,7 +7,6 @@ import (
 
 	"github.com/mariocoski/address-service/internal/app"
 	"github.com/mariocoski/address-service/internal/config"
-	repositories "github.com/mariocoski/address-service/internal/modules/addresses/domain/repositories"
 	"github.com/mariocoski/address-service/internal/shared/logger"
 )
 
@@ -17,20 +16,9 @@ func main() {
 	config := config.NewConfig()
 	logger := logger.NewLogger()
 
-	repoDependencies := repositories.AddresssRepoDependencies{
-		RepoType: "postgres",
-		Config:   config,
-	}
-	addressesRepository, err := repositories.NewAddressesRepository(&repoDependencies)
-
-	if err != nil {
-		log.Fatal("Cannot instantiate repo", err)
-	}
-
 	dependencies := app.Dependencies{
-		Logger:              &logger,
-		Config:              config,
-		AddressesRepository: addressesRepository,
+		Logger: &logger,
+		Config: config,
 	}
 
 	app := app.NewApplication(dependencies)

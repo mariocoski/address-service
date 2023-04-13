@@ -8,9 +8,13 @@ import (
 	addresses "github.com/mariocoski/address-service/internal/modules/addresses/domain"
 	addresses_domain "github.com/mariocoski/address-service/internal/modules/addresses/domain"
 	domain "github.com/mariocoski/address-service/internal/modules/addresses/domain"
+	"github.com/mariocoski/address-service/internal/shared/core/pagination"
 )
 
-func (r *postgresAddressesRepo) GetAll() ([]*domain.Address, error) {
+func (r *postgresAddressesRepo) GetAllPaginated(currentPage int, perPage int) (pagination.PaginationResult[domain.Address], error) {
+	offset := (currentPage - 1) * perPage
+	limit := perPage
+
 	rows, err := r.conn.QueryContext(
 		context.Background(),
 		`SELECT 
@@ -24,17 +28,24 @@ func (r *postgresAddressesRepo) GetAll() ([]*domain.Address, error) {
 			postcode,
 			country
 		FROM 
-			addresses
-	`)
+			addresses 
+		ORDER BY id DESC
+		OFFSET $1 LIMIT $2
+	`, offset, limit)
+
+	addresses := make([]addresses.Address, 0)
+	default_pagination_result := pagination.PaginationResult[domain.Address]{
+		Data:       addresses,
+		Pagination: pagination.DEFAULT_PAGINATION,
+	}
+
 	if err != nil {
-		return nil, fmt.Errorf("error querying database: %v", err)
+		return default_pagination_result, fmt.Errorf("error querying database: %v", err)
 	}
 	defer rows.Close()
 
-	addresses := make([]*addresses.Address, 0)
-
 	for rows.Next() {
-		address := &addresses_domain.Address{}
+		address := addresses_domain.Address{}
 
 		err := rows.Scan(
 			&address.Id,
@@ -49,15 +60,56 @@ func (r *postgresAddressesRepo) GetAll() ([]*domain.Address, error) {
 		)
 		log.Println("address", address)
 		if err != nil {
-			return nil, fmt.Errorf("error scanning row: %v", err)
+			return default_pagination_result, fmt.Errorf("error scanning row: %v", err)
 		}
 		addresses = append(addresses, address)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("error iterating rows: %v", err)
+		return default_pagination_result, fmt.Errorf("error iterating rows: %v", err)
 	}
-	return addresses, nil
+
+	var total int
+
+	row := r.conn.QueryRowContext(
+		context.Background(),
+		`SELECT COUNT(*) FROM (
+			SELECT 1 FROM addresses
+		) t`)
+
+	err = row.Scan(&total)
+	if err != nil {
+		return default_pagination_result, fmt.Errorf("error counting addresses rows: %v", err)
+	}
+
+	lastPage := total / perPage
+	if total%perPage != 0 {
+		lastPage++
+	}
+
+	var to int
+
+	if currentPage == lastPage {
+		to = total
+	} else {
+		to = offset + len(addresses)
+	}
+
+	paginationData := pagination.Pagination{
+		LastPage:    lastPage,
+		Total:       total,
+		CurrentPage: currentPage,
+		PerPage:     perPage,
+		From:        offset,
+		To:          to,
+	}
+
+	paginatedResult := pagination.PaginationResult[addresses_domain.Address]{
+		Data:       addresses,
+		Pagination: paginationData,
+	}
+
+	return paginatedResult, nil
 }
 
 // func (r *AddressesRepository) GetAllPaginated(page int, pageSize int) ([]*models.Address, error) {
