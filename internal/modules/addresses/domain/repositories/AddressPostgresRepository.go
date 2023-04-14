@@ -2,6 +2,7 @@ package address_repo
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log"
 
@@ -29,7 +30,7 @@ func (r *postgresAddressesRepo) GetAllPaginated(currentPage int, perPage int) (p
 			country
 		FROM 
 			addresses 
-		ORDER BY id DESC
+		ORDER BY created_at DESC
 		OFFSET $1 LIMIT $2
 	`, offset, limit)
 
@@ -47,14 +48,16 @@ func (r *postgresAddressesRepo) GetAllPaginated(currentPage int, perPage int) (p
 	for rows.Next() {
 		address := addresses_domain.Address{}
 
+		var addressLine2, addressLine3, county, state sql.NullString
+
 		err := rows.Scan(
 			&address.Id,
 			&address.AddressLine1,
-			&address.AddressLine2,
-			&address.AddressLine3,
+			&addressLine2,
+			&addressLine3,
 			&address.City,
-			&address.County,
-			&address.State,
+			&county,
+			&state,
 			&address.Postcode,
 			&address.Country,
 		)
@@ -62,6 +65,23 @@ func (r *postgresAddressesRepo) GetAllPaginated(currentPage int, perPage int) (p
 		if err != nil {
 			return default_pagination_result, fmt.Errorf("error scanning row: %v", err)
 		}
+
+		if addressLine2.Valid {
+			address.AddressLine2 = addressLine2.String
+		}
+
+		if addressLine3.Valid {
+			address.AddressLine3 = addressLine3.String
+		}
+
+		if county.Valid {
+			address.County = county.String
+		}
+
+		if state.Valid {
+			address.State = state.String
+		}
+
 		addresses = append(addresses, address)
 	}
 
@@ -112,49 +132,3 @@ func (r *postgresAddressesRepo) GetAllPaginated(currentPage int, perPage int) (p
 
 	return paginatedResult, nil
 }
-
-// func (r *AddressesRepository) GetAllPaginated(page int, pageSize int) ([]*models.Address, error) {
-// 	// TODO: Implement pagination logic using OFFSET and LIMIT clauses in SQL query
-// 	return nil, fmt.Errorf("not implemented")
-// }
-
-// func (r *AddressesRepository) GetById(id int) (*models.Address, error) {
-// 	address := &models.Address{}
-// 	err := r.conn.QueryRow(context.Background(), "SELECT * FROM addresses WHERE id = $1", id).Scan(
-// 		&address.ID,
-// 		&address.AddressLine1,
-// 		&address.AddressLine2,
-// 		&address.City,
-// 		&address.County,
-// 		&address.State,
-// 		&address.Postcode,
-// 		&address.Country,
-// 	)
-// 	if err != nil {
-// 		if err == pgx.ErrNoRows {
-// 			return nil, fmt.Errorf("address not found")
-// 		}
-// 		return nil, fmt.Errorf("error querying database: %v", err)
-// 	}
-
-// 	return address, nil
-// }
-
-// func (r *AddressesRepository) Save(address *models.Address) error {
-// 	_, err := r.conn.Exec(
-// 		context.Background(),
-// 		"INSERT INTO addresses (address_line_1, address_line_2, city, county, state, postcode, country) VALUES ($1, $2, $3, $4, $5, $6, $7)",
-// 		address.AddressLine1,
-// 		address.AddressLine2,
-// 		address.City,
-// 		address.County,
-// 		address.State,
-// 		address.Postcode,
-// 		address.Country,
-// 	)
-// 	if err != nil {
-// 		return fmt.Errorf("error inserting address: %v", err)
-// 	}
-
-// 	return nil
-// }

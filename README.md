@@ -5,11 +5,9 @@ Simple microservice written in golang to handle CRUD operations on Address domai
 # TODO:
 
 - adjust project layout (https://github.com/golang-standards/project-layout)
-- select db migration tool
 - setup postgres repository
 - dokerize the app
-- add authentication middleware
-- add validation library
+- add authentication middleware 
 - add tests
 - add http handlers for:
   - POST /api/addresses - to create an address
