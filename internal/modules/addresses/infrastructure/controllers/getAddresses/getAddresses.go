@@ -15,7 +15,7 @@ type GetAddressesController struct {
 	useCase *get_addresses_use_case.GetAddressesUseCase
 }
 
-func NewGetAddressesController(logger logger.Logger, useCase *get_addresses_use_case.GetAddressesUseCase) *GetAddressesController {
+func NewController(logger logger.Logger, useCase *get_addresses_use_case.GetAddressesUseCase) *GetAddressesController {
 	return &GetAddressesController{
 		logger:  logger,
 		useCase: useCase,

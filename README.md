@@ -15,3 +15,5 @@ Simple microservice written in golang to handle CRUD operations on Address domai
   - GET /api/addresses/:addressId - to get address by id
   - PATCH /api/addresses/:addressId - to patch address by id
   - DELETE /api/addresses/:addressId - to patch address by id
+
+https://gist.github.com/rhcarvalho/66130d1252d4a7b1fbaeacfe3687eaf3

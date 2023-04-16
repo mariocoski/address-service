@@ -4,12 +4,10 @@ import (
 	addresses "github.com/mariocoski/address-service/internal/modules/addresses/domain"
 	address_repo "github.com/mariocoski/address-service/internal/modules/addresses/domain/repositories"
 	"github.com/mariocoski/address-service/internal/shared/core/pagination"
-	"github.com/mariocoski/address-service/internal/shared/logger"
 )
 
 type GetAddressesUseCase struct {
 	addressesRepository address_repo.AddressesRepository
-	logger              logger.Logger
 }
 
 func NewUseCase(addressesRepository address_repo.AddressesRepository) *GetAddressesUseCase {

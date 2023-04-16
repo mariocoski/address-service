@@ -6,6 +6,7 @@ require github.com/go-chi/chi v1.5.4
 
 require (
 	github.com/auth0/go-jwt-middleware/v2 v2.1.0 // indirect
+	github.com/getsentry/sentry-go v0.20.0 // indirect
 	github.com/go-chi/chi/v5 v5.0.8 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect

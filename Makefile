@@ -48,3 +48,16 @@ run:
 .PHONY: install
 install:
 	sh ./scripts/install-liquibase-mac.sh
+
+.PHONY: docker-up
+docker-up:
+	docker-compose up --build --force-recreate --no-deps -d
+	echo 'Waiting for db\n'
+	sleep 1
+	(until curl http://localhost:5432/ 2>&1 | grep '52' > /dev/null; do sleep 1; done) || true
+	make migration-update
+	make seed-update
+
+.PHONY: docker-down
+docker-down:  
+	docker-compose down -v

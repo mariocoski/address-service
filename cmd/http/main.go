@@ -10,7 +10,7 @@ import (
 	"github.com/mariocoski/address-service/internal/shared/logger"
 )
 
-const HOST = "localhost:7000"
+const HOST = ":7000"
 
 func main() {
 	config := config.NewConfig()

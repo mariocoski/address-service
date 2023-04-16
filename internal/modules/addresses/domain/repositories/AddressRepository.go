@@ -3,7 +3,6 @@ package address_repo
 import (
 	"database/sql"
 	"fmt"
-	"log"
 
 	"github.com/mariocoski/address-service/internal/config"
 	domain "github.com/mariocoski/address-service/internal/modules/addresses/domain"
@@ -13,8 +12,7 @@ import (
 
 type AddressesRepository interface {
 	GetAllPaginated(currentPage int, perPage int) (pagination.PaginationResult[domain.Address], error)
-	// GetAll() ([]*domain.Address, error)
-	// GetById(id int) (*domain.Address, error)
+	GetById(addressId string) (domain.Address, error)
 	// Save(address *domain.Address) error
 }
 
@@ -29,7 +27,6 @@ type postgresAddressesRepo struct {
 func NewAddressesRepository(config config.Config) (AddressesRepository, error) {
 	if config.RepositoryType == "postgres" {
 		conn, err := postgres_driver.ConnectSQL(config.PostgresConnectionUrl)
-		log.Println("conn", config.PostgresConnectionUrl)
 		if err != nil {
 			return &postgresAddressesRepo{}, err
 		}

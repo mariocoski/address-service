@@ -4,9 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"log"
 
-	addresses "github.com/mariocoski/address-service/internal/modules/addresses/domain"
 	addresses_domain "github.com/mariocoski/address-service/internal/modules/addresses/domain"
 	domain "github.com/mariocoski/address-service/internal/modules/addresses/domain"
 	"github.com/mariocoski/address-service/internal/shared/core/pagination"
@@ -34,7 +32,7 @@ func (r *postgresAddressesRepo) GetAllPaginated(currentPage int, perPage int) (p
 		OFFSET $1 LIMIT $2
 	`, offset, limit)
 
-	addresses := make([]addresses.Address, 0)
+	addresses := make([]domain.Address, 0)
 	default_pagination_result := pagination.PaginationResult[domain.Address]{
 		Data:       addresses,
 		Pagination: pagination.DEFAULT_PAGINATION,
@@ -61,7 +59,7 @@ func (r *postgresAddressesRepo) GetAllPaginated(currentPage int, perPage int) (p
 			&address.Postcode,
 			&address.Country,
 		)
-		log.Println("address", address)
+
 		if err != nil {
 			return default_pagination_result, fmt.Errorf("error scanning row: %v", err)
 		}
@@ -131,4 +129,63 @@ func (r *postgresAddressesRepo) GetAllPaginated(currentPage int, perPage int) (p
 	}
 
 	return paginatedResult, nil
+}
+
+func (r *postgresAddressesRepo) GetById(addressId string) (domain.Address, error) {
+
+	row := r.conn.QueryRowContext(
+		context.Background(),
+		`SELECT 
+			id,
+			address_line_1,
+			address_line_2,
+			address_line_3,
+			city,
+			county,
+			state,
+			postcode,
+			country
+		FROM 
+			addresses 
+		WHERE id=$1::uuid
+		LIMIT 1
+	`, addressId)
+
+	address := addresses_domain.Address{}
+
+	var addressLine2, addressLine3, county, state sql.NullString
+
+	err := row.Scan(
+		&address.Id,
+		&address.AddressLine1,
+		&addressLine2,
+		&addressLine3,
+		&address.City,
+		&county,
+		&state,
+		&address.Postcode,
+		&address.Country,
+	)
+
+	if err != nil {
+		return domain.Address{}, fmt.Errorf("error get address by id: %v", err)
+	}
+
+	if addressLine2.Valid {
+		address.AddressLine2 = addressLine2.String
+	}
+
+	if addressLine3.Valid {
+		address.AddressLine3 = addressLine3.String
+	}
+
+	if county.Valid {
+		address.County = county.String
+	}
+
+	if state.Valid {
+		address.State = state.String
+	}
+
+	return address, nil
 }
