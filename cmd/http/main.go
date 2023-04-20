@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 
@@ -28,7 +27,7 @@ func main() {
 		Handler: app,
 	}
 
-	fmt.Printf("Listening on http://%v", HOST)
+	log.Printf("Listening on http://%v", HOST)
 
 	serverErr := server.ListenAndServe()
 

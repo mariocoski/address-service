@@ -2,11 +2,13 @@ package get_address_by_id_controller
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
 	useCase "github.com/mariocoski/address-service/internal/modules/addresses/application/getAddressById"
+	domain "github.com/mariocoski/address-service/internal/modules/addresses/domain"
 	"github.com/mariocoski/address-service/internal/shared/logger"
 )
 
@@ -37,11 +39,13 @@ func (c *GetAddressByIdController) Handle(w http.ResponseWriter, r *http.Request
 
 	address, err := c.useCase.GetById(addressIdParam)
 
-	// handle not found error with 404
-	// https://github.com/jackc/pgx/issues/474#issuecomment-549397821
-
 	if err != nil {
-		c.logger.Error(err.Error())
+		if errors.Is(err, domain.ErrAddressNotFound) {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+
+		c.logger.Error(fmt.Sprintf("cannot get address by id: %v, error: %v", addressIdParam, err))
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

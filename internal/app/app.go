@@ -1,10 +1,8 @@
 package app
 
 import (
-	"errors"
 	"fmt"
 	"log"
-	"net/http"
 	"time"
 
 	"github.com/getsentry/sentry-go"
@@ -12,11 +10,17 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/mariocoski/address-service/internal/config"
+	create_address_use_case "github.com/mariocoski/address-service/internal/modules/addresses/application/createAddress"
+	delete_address_use_case "github.com/mariocoski/address-service/internal/modules/addresses/application/deleteAddress"
 	get_address_by_id_use_case "github.com/mariocoski/address-service/internal/modules/addresses/application/getAddressById"
 	get_addresses_use_case "github.com/mariocoski/address-service/internal/modules/addresses/application/getAddresses"
+	update_address_use_case "github.com/mariocoski/address-service/internal/modules/addresses/application/updateAddress"
 	address_repo "github.com/mariocoski/address-service/internal/modules/addresses/domain/repositories"
+	create_address_controller "github.com/mariocoski/address-service/internal/modules/addresses/infrastructure/controllers/createAddress"
+	delete_address_controller "github.com/mariocoski/address-service/internal/modules/addresses/infrastructure/controllers/deleteAddress"
 	get_address_by_id_controller "github.com/mariocoski/address-service/internal/modules/addresses/infrastructure/controllers/getAddressById"
 	get_addresses_controller "github.com/mariocoski/address-service/internal/modules/addresses/infrastructure/controllers/getAddresses"
+	update_address_controller "github.com/mariocoski/address-service/internal/modules/addresses/infrastructure/controllers/updateAddress"
 	"github.com/mariocoski/address-service/internal/shared/logger"
 )
 
@@ -56,6 +60,15 @@ func NewApplication(dependencies Dependencies) *chi.Mux {
 	getAddressByIdUseCase := get_address_by_id_use_case.NewUseCase(addressesRepository)
 	getAddressByIdController := get_address_by_id_controller.NewController(*dependencies.Logger, getAddressByIdUseCase)
 
+	createAddressUseCase := create_address_use_case.NewUseCase(addressesRepository)
+	createAddressController := create_address_controller.NewController(*dependencies.Logger, createAddressUseCase)
+
+	deleteAddressUseCase := delete_address_use_case.NewUseCase(addressesRepository)
+	deleteAddressController := delete_address_controller.NewController(*dependencies.Logger, deleteAddressUseCase)
+
+	updateAddressUseCase := update_address_use_case.NewUseCase(addressesRepository)
+	updateAddressController := update_address_controller.NewController(*dependencies.Logger, updateAddressUseCase)
+
 	if err != nil {
 		log.Fatal("Cannot instantiate repo", err)
 	}
@@ -77,20 +90,12 @@ func NewApplication(dependencies Dependencies) *chi.Mux {
 	// processing should be stopped.
 	mux.Use(middleware.Timeout(60 * time.Second))
 
-	mux.Get("/error", func(w http.ResponseWriter, r *http.Request) {
-		hub := sentry.GetHubFromContext(r.Context())
-		hub.CaptureException(errors.New("test error"))
-	})
-	mux.Get("/panic", func(w http.ResponseWriter, r *http.Request) {
-		panic("server panic")
-	})
-
 	mux.Route(fmt.Sprintf("%v%v", API_PATH, ADDRESSES_PATH), func(r chi.Router) {
-		// GET /api/addresses
+		r.Post("/", createAddressController.Handle)
 		r.Get("/{addressID}", getAddressByIdController.Handle)
 		r.Get("/", getAddressesController.Handle)
-
-		// GET /api/addresses/{addressId}
+		r.Patch("/{addressID}", updateAddressController.Handle)
+		r.Delete("/{addressID}", deleteAddressController.Handle)
 	})
 
 	return mux

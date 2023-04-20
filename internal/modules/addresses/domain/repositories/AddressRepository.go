@@ -13,7 +13,9 @@ import (
 type AddressesRepository interface {
 	GetAllPaginated(currentPage int, perPage int) (pagination.PaginationResult[domain.Address], error)
 	GetById(addressId string) (domain.Address, error)
-	// Save(address *domain.Address) error
+	Save(address domain.AddressInitializer) (domain.Address, error)
+	Delete(addressId string) (string, error)
+	Update(addressId string, patch domain.AddressPatch) (domain.Address, error)
 }
 
 type AddresssRepoDependencies struct {
