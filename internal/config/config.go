@@ -7,6 +7,8 @@ type Config struct {
 	PostgresConnectionUrl string
 	RepositoryType        string
 	SentryUrl             string
+	Auth0Domain           string
+	Auth0Audience         string
 }
 
 func NewConfig() *Config {
@@ -15,5 +17,7 @@ func NewConfig() *Config {
 		PostgresConnectionUrl: os.Getenv("POSTGRES_CONNECTION_URI"),
 		RepositoryType:        os.Getenv("REPOSITORY_TYPE"),
 		SentryUrl:             os.Getenv("SENTRY_URL"),
+		Auth0Domain:           os.Getenv("AUTH0_DOMAIN"),
+		Auth0Audience:         os.Getenv("AUTH0_AUDIENCE"),
 	}
 }

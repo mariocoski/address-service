@@ -21,6 +21,7 @@ import (
 	get_address_by_id_controller "github.com/mariocoski/address-service/internal/modules/addresses/infrastructure/controllers/getAddressById"
 	get_addresses_controller "github.com/mariocoski/address-service/internal/modules/addresses/infrastructure/controllers/getAddresses"
 	update_address_controller "github.com/mariocoski/address-service/internal/modules/addresses/infrastructure/controllers/updateAddress"
+	"github.com/mariocoski/address-service/internal/shared/http/middlewares"
 	"github.com/mariocoski/address-service/internal/shared/logger"
 )
 
@@ -89,6 +90,7 @@ func NewApplication(dependencies Dependencies) *chi.Mux {
 	// through ctx.Done() that the request has timed out and further
 	// processing should be stopped.
 	mux.Use(middleware.Timeout(60 * time.Second))
+	mux.Use(middlewares.Authenticate(*dependencies.Config))
 
 	mux.Route(fmt.Sprintf("%v%v", API_PATH, ADDRESSES_PATH), func(r chi.Router) {
 		r.Post("/", createAddressController.Handle)
