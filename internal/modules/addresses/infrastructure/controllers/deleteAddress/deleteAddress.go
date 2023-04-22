@@ -3,24 +3,20 @@ package delete_address_controller
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
 	useCase "github.com/mariocoski/address-service/internal/modules/addresses/application/deleteAddress"
 	domain "github.com/mariocoski/address-service/internal/modules/addresses/domain"
-	"github.com/mariocoski/address-service/internal/shared/logger"
+	"github.com/sirupsen/logrus"
 )
 
 type DeleteAddressController struct {
-	logger  logger.Logger
 	useCase useCase.DeleteAddressUseCase
 }
 
-func NewController(logger logger.Logger, useCase useCase.DeleteAddressUseCase) *DeleteAddressController {
+func NewController(useCase useCase.DeleteAddressUseCase) *DeleteAddressController {
 	return &DeleteAddressController{
-		logger:  logger,
 		useCase: useCase,
 	}
 }
@@ -29,17 +25,16 @@ func (c *DeleteAddressController) Handle(w http.ResponseWriter, r *http.Request)
 
 	addressIdParam := chi.URLParam(r, "addressID")
 
-	c.logger.Info(fmt.Sprintf(`DeleteAddressController: received "addressId" url param: %v`, addressIdParam))
+	logrus.Infof(`DeleteAddressController: received "addressId" url param: %v`, addressIdParam)
 
 	if addressIdParam == "" {
-		c.logger.Error("invalid addressId url param")
+		logrus.Error("invalid addressId url param")
 
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		return
 	}
 
 	addressId, err := c.useCase.DeleteAddress(addressIdParam)
-	log.Println("addressId", addressId)
 
 	// https://github.com/jackc/pgx/issues/474#issuecomment-549397821
 	if err != nil {
@@ -48,7 +43,7 @@ func (c *DeleteAddressController) Handle(w http.ResponseWriter, r *http.Request)
 			return
 		}
 
-		c.logger.Error(fmt.Sprintf("cannot delete address by id: %v, error: %v", addressId, err))
+		logrus.Errorf("cannot delete address by id: %v, error: %v", addressId, err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -62,7 +57,7 @@ func (c *DeleteAddressController) Handle(w http.ResponseWriter, r *http.Request)
 	// TODO: uncomment when done with development
 	// responseJson, err := json.Marshal(response, "", "  ")
 	if err != nil {
-		c.logger.Error(err.Error())
+		logrus.Error(err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

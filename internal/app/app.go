@@ -2,7 +2,6 @@ package app
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/getsentry/sentry-go"
@@ -22,28 +21,27 @@ import (
 	get_addresses_controller "github.com/mariocoski/address-service/internal/modules/addresses/infrastructure/controllers/getAddresses"
 	update_address_controller "github.com/mariocoski/address-service/internal/modules/addresses/infrastructure/controllers/updateAddress"
 	"github.com/mariocoski/address-service/internal/shared/http/middlewares"
-	"github.com/mariocoski/address-service/internal/shared/logger"
+	"github.com/sirupsen/logrus"
 )
 
 const API_PATH = "/api"
 const ADDRESSES_PATH = "/addresses"
 
 type Dependencies struct {
-	Logger *logger.Logger
 	Config *config.Config
 }
 
 func NewApplication(dependencies Dependencies) *chi.Mux {
 	err := sentry.Init(sentry.ClientOptions{
-		Dsn:   dependencies.Config.SentryUrl,
-		Debug: true,
+		Dsn: dependencies.Config.SentryUrl,
+		// Debug: true,
 		// Set TracesSampleRate to 1.0 to capture 100%
 		// of transactions for performance monitoring.
 		// We recommend adjusting this value in production,
 		TracesSampleRate: 1.0,
 	})
 	if err != nil {
-		log.Fatalf("sentry.Init: %s", err)
+		logrus.Fatalf("cannot initialise sentry %s", err)
 	}
 
 	// Flush buffered events before the program terminates.
@@ -56,22 +54,22 @@ func NewApplication(dependencies Dependencies) *chi.Mux {
 	addressesRepository, err := address_repo.NewAddressesRepository(*dependencies.Config)
 
 	getAddressesUseCase := get_addresses_use_case.NewUseCase(addressesRepository)
-	getAddressesController := get_addresses_controller.NewController(*dependencies.Logger, getAddressesUseCase)
+	getAddressesController := get_addresses_controller.NewController(getAddressesUseCase)
 
 	getAddressByIdUseCase := get_address_by_id_use_case.NewUseCase(addressesRepository)
-	getAddressByIdController := get_address_by_id_controller.NewController(*dependencies.Logger, getAddressByIdUseCase)
+	getAddressByIdController := get_address_by_id_controller.NewController(getAddressByIdUseCase)
 
 	createAddressUseCase := create_address_use_case.NewUseCase(addressesRepository)
-	createAddressController := create_address_controller.NewController(*dependencies.Logger, createAddressUseCase)
+	createAddressController := create_address_controller.NewController(createAddressUseCase)
 
 	deleteAddressUseCase := delete_address_use_case.NewUseCase(addressesRepository)
-	deleteAddressController := delete_address_controller.NewController(*dependencies.Logger, deleteAddressUseCase)
+	deleteAddressController := delete_address_controller.NewController(deleteAddressUseCase)
 
 	updateAddressUseCase := update_address_use_case.NewUseCase(addressesRepository)
-	updateAddressController := update_address_controller.NewController(*dependencies.Logger, updateAddressUseCase)
+	updateAddressController := update_address_controller.NewController(updateAddressUseCase)
 
 	if err != nil {
-		log.Fatal("Cannot instantiate repo", err)
+		logrus.Fatal("cannot instantiate repo", err)
 	}
 
 	mux := chi.NewRouter()

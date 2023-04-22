@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"log"
 
 	"github.com/jackc/pgx/v5"
 	domain "github.com/mariocoski/address-service/internal/modules/addresses/domain"
@@ -306,8 +305,6 @@ func getUpdateQueryAndParams(addressId string, addressPatch domain.AddressPatch)
 
 func (r *postgresAddressesRepo) Update(addressId string, addressPatch domain.AddressPatch) (domain.Address, error) {
 	query, params := getUpdateQueryAndParams(addressId, addressPatch)
-	log.Println("query", query)
-	log.Println("params", params)
 
 	result, err := r.conn.ExecContext(context.Background(), query, params)
 	if err != nil {

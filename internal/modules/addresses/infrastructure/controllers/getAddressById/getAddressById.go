@@ -9,17 +9,15 @@ import (
 	"github.com/go-chi/chi/v5"
 	useCase "github.com/mariocoski/address-service/internal/modules/addresses/application/getAddressById"
 	domain "github.com/mariocoski/address-service/internal/modules/addresses/domain"
-	"github.com/mariocoski/address-service/internal/shared/logger"
+	"github.com/sirupsen/logrus"
 )
 
 type GetAddressByIdController struct {
-	logger  logger.Logger
 	useCase useCase.GetAddressByIdUseCase
 }
 
-func NewController(logger logger.Logger, useCase useCase.GetAddressByIdUseCase) *GetAddressByIdController {
+func NewController(useCase useCase.GetAddressByIdUseCase) *GetAddressByIdController {
 	return &GetAddressByIdController{
-		logger:  logger,
 		useCase: useCase,
 	}
 }
@@ -28,10 +26,10 @@ func (c *GetAddressByIdController) Handle(w http.ResponseWriter, r *http.Request
 
 	addressIdParam := chi.URLParam(r, "addressID")
 
-	c.logger.Info(fmt.Sprintf(`GetAddressByIdController: received "addressId" url param: %v`, addressIdParam))
+	logrus.Info(fmt.Sprintf(`GetAddressByIdController: received "addressId" url param: %v`, addressIdParam))
 
 	if addressIdParam == "" {
-		c.logger.Error("invalid addressId url param")
+		logrus.Errorf("missing addressId url param")
 
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		return
@@ -45,7 +43,7 @@ func (c *GetAddressByIdController) Handle(w http.ResponseWriter, r *http.Request
 			return
 		}
 
-		c.logger.Error(fmt.Sprintf("cannot get address by id: %v, error: %v", addressIdParam, err))
+		logrus.Errorf("cannot get address by id: %v, error: %v", addressIdParam, err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -54,7 +52,7 @@ func (c *GetAddressByIdController) Handle(w http.ResponseWriter, r *http.Request
 	// TODO: uncomment when done with development
 	// response, err := json.Marshal(addresss, "", "  ")
 	if err != nil {
-		c.logger.Error(err.Error())
+		logrus.Error(err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

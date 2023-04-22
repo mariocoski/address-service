@@ -2,7 +2,6 @@ package middlewares
 
 import (
 	"context"
-	"log"
 	"net/http"
 	"net/url"
 	"time"
@@ -11,6 +10,7 @@ import (
 	"github.com/auth0/go-jwt-middleware/v2/jwks"
 	"github.com/auth0/go-jwt-middleware/v2/validator"
 	"github.com/mariocoski/address-service/internal/config"
+	"github.com/sirupsen/logrus"
 )
 
 // CustomClaims contains custom data we want from the token.
@@ -28,10 +28,8 @@ func (c CustomClaims) Validate(ctx context.Context) error {
 func Authenticate(config config.Config) func(next http.Handler) http.Handler {
 	issuerURL, err := url.Parse(config.Auth0Domain)
 	if err != nil {
-		log.Fatalf("Failed to parse the issuer url: %v", err)
+		logrus.Fatalf("Failed to parse the issuer url: %v", err)
 	}
-
-	log.Println("issuerURL", issuerURL)
 
 	provider := jwks.NewCachingProvider(issuerURL, 5*time.Minute)
 
@@ -48,11 +46,11 @@ func Authenticate(config config.Config) func(next http.Handler) http.Handler {
 		validator.WithAllowedClockSkew(time.Minute),
 	)
 	if err != nil {
-		log.Fatalf("Failed to set up the jwt validator")
+		logrus.Fatalf("Failed to set up the jwt validator")
 	}
 
 	errorHandler := func(w http.ResponseWriter, r *http.Request, err error) {
-		log.Printf("Encountered error while validating JWT: %v", err)
+		logrus.Infof("Encountered error while validating JWT: %v", err)
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusUnauthorized)

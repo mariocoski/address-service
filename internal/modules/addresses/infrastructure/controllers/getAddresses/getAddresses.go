@@ -2,22 +2,19 @@ package get_addresses_controller
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
 
 	get_addresses_use_case "github.com/mariocoski/address-service/internal/modules/addresses/application/getAddresses"
-	"github.com/mariocoski/address-service/internal/shared/logger"
+	"github.com/sirupsen/logrus"
 )
 
 type GetAddressesController struct {
-	logger  logger.Logger
 	useCase *get_addresses_use_case.GetAddressesUseCase
 }
 
-func NewController(logger logger.Logger, useCase *get_addresses_use_case.GetAddressesUseCase) *GetAddressesController {
+func NewController(useCase *get_addresses_use_case.GetAddressesUseCase) *GetAddressesController {
 	return &GetAddressesController{
-		logger:  logger,
 		useCase: useCase,
 	}
 }
@@ -32,8 +29,8 @@ func (c *GetAddressesController) Handle(w http.ResponseWriter, r *http.Request) 
 	pageParam := r.URL.Query().Get("page")
 	perPagaParam := r.URL.Query().Get("per_page")
 
-	c.logger.Info(fmt.Sprintf(`GetAddressesController: received "page" query param with value: %v`, pageParam))
-	c.logger.Info(fmt.Sprintf(`GetAddressesController: received: "per_page" query param with value: %v`, perPagaParam))
+	logrus.Infof(`GetAddressesController: received "page" query param with value: %v`, pageParam)
+	logrus.Infof(`GetAddressesController: received: "per_page" query param with value: %v`, perPagaParam)
 
 	if pageParam != "" {
 		pageParamAsInt, err := strconv.Atoi(pageParam)
@@ -57,7 +54,7 @@ func (c *GetAddressesController) Handle(w http.ResponseWriter, r *http.Request) 
 	addressesPaginated, err := c.useCase.GetAddresses(request)
 
 	if err != nil {
-		c.logger.Error(err.Error())
+		logrus.Error(err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -66,7 +63,7 @@ func (c *GetAddressesController) Handle(w http.ResponseWriter, r *http.Request) 
 	// TODO: uncomment when done with development
 	// response, err := json.Marshal(addressesPaginated, "", "  ")
 	if err != nil {
-		c.logger.Error(err.Error())
+		logrus.Error(err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

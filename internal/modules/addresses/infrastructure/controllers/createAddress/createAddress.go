@@ -7,17 +7,15 @@ import (
 	validator "github.com/go-playground/validator/v10"
 	useCase "github.com/mariocoski/address-service/internal/modules/addresses/application/createAddress"
 	domain "github.com/mariocoski/address-service/internal/modules/addresses/domain"
-	"github.com/mariocoski/address-service/internal/shared/logger"
+	"github.com/sirupsen/logrus"
 )
 
 type CreateAddressController struct {
-	logger  logger.Logger
 	useCase useCase.CreateAddressUseCase
 }
 
-func NewController(logger logger.Logger, useCase useCase.CreateAddressUseCase) *CreateAddressController {
+func NewController(useCase useCase.CreateAddressUseCase) *CreateAddressController {
 	return &CreateAddressController{
-		logger:  logger,
 		useCase: useCase,
 	}
 }
@@ -39,7 +37,7 @@ func (c *CreateAddressController) Handle(w http.ResponseWriter, r *http.Request)
 	err = validator.New().Struct(address)
 
 	if err != nil {
-		println("CreateAddressController validation error: " + err.Error())
+		logrus.Error("CreateAddressController validation error: " + err.Error())
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -50,7 +48,7 @@ func (c *CreateAddressController) Handle(w http.ResponseWriter, r *http.Request)
 	// https://github.com/jackc/pgx/issues/474#issuecomment-549397821
 
 	if err != nil {
-		c.logger.Error(err.Error())
+		logrus.Error("CreateAddressController useCase: " + err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -59,7 +57,7 @@ func (c *CreateAddressController) Handle(w http.ResponseWriter, r *http.Request)
 	// TODO: uncomment when done with development
 	// response, err := json.Marshal(createdAddress, "", "  ")
 	if err != nil {
-		c.logger.Error(err.Error())
+		logrus.Error("CreateAddressController json marshalling: " + err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

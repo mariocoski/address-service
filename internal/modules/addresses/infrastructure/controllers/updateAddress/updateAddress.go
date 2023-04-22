@@ -9,17 +9,15 @@ import (
 	"github.com/go-chi/chi/v5"
 	useCase "github.com/mariocoski/address-service/internal/modules/addresses/application/updateAddress"
 	domain "github.com/mariocoski/address-service/internal/modules/addresses/domain"
-	"github.com/mariocoski/address-service/internal/shared/logger"
+	"github.com/sirupsen/logrus"
 )
 
 type UpdateAddressController struct {
-	logger  logger.Logger
 	useCase useCase.UpdateAddressUseCase
 }
 
-func NewController(logger logger.Logger, useCase useCase.UpdateAddressUseCase) *UpdateAddressController {
+func NewController(useCase useCase.UpdateAddressUseCase) *UpdateAddressController {
 	return &UpdateAddressController{
-		logger:  logger,
 		useCase: useCase,
 	}
 }
@@ -28,10 +26,10 @@ func (c *UpdateAddressController) Handle(w http.ResponseWriter, r *http.Request)
 
 	addressIdParam := chi.URLParam(r, "addressID")
 
-	c.logger.Info(fmt.Sprintf(`UpdateAddressController: received "addressId" url param: %v`, addressIdParam))
+	logrus.Infof(`UpdateAddressController: received "addressId" url param: %v`, addressIdParam)
 
 	if addressIdParam == "" {
-		c.logger.Error("invalid addressId url param")
+		logrus.Error("UpdateAddressController: missing addressId url param")
 
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		return
@@ -88,7 +86,7 @@ func (c *UpdateAddressController) Handle(w http.ResponseWriter, r *http.Request)
 			return
 		}
 
-		c.logger.Error(fmt.Sprintf("cannot get address by id: %v, error: %v", addressIdParam, err))
+		logrus.Error(fmt.Sprintf("cannot get address by id: %v, error: %v", addressIdParam, err))
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -97,7 +95,7 @@ func (c *UpdateAddressController) Handle(w http.ResponseWriter, r *http.Request)
 	// TODO: uncomment when done with development
 	// response, err := json.Marshal(addresss, "", "  ")
 	if err != nil {
-		c.logger.Error("message")
+		logrus.Error("message")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
