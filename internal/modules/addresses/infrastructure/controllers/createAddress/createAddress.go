@@ -5,18 +5,18 @@ import (
 	"net/http"
 
 	validator "github.com/go-playground/validator/v10"
-	useCase "github.com/mariocoski/address-service/internal/modules/addresses/application/createAddress"
 	domain "github.com/mariocoski/address-service/internal/modules/addresses/domain"
+	address_repo "github.com/mariocoski/address-service/internal/modules/addresses/domain/repositories"
 	"github.com/sirupsen/logrus"
 )
 
 type CreateAddressController struct {
-	useCase useCase.CreateAddressUseCase
+	addressesRepository address_repo.AddressesRepository
 }
 
-func NewController(useCase useCase.CreateAddressUseCase) *CreateAddressController {
+func NewController(addressesRepository address_repo.AddressesRepository) *CreateAddressController {
 	return &CreateAddressController{
-		useCase: useCase,
+		addressesRepository,
 	}
 }
 
@@ -42,7 +42,7 @@ func (c *CreateAddressController) Handle(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	createdAddress, err := c.useCase.CreateAddress(address)
+	createdAddress, err := c.addressesRepository.Save(address)
 
 	// handle not found error with 429
 	// https://github.com/jackc/pgx/issues/474#issuecomment-549397821

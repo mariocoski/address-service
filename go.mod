@@ -1,6 +1,6 @@
 module github.com/mariocoski/address-service
 
-go 1.19
+go 1.20
 
 require (
 	github.com/getsentry/sentry-go v0.20.0
@@ -15,6 +15,7 @@ require (
 	github.com/evalphobia/logrus_sentry v0.8.2 // indirect
 	github.com/getsentry/raven-go v0.2.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
+	github.com/samber/slog-sentry v0.1.1 // indirect
 	github.com/sirupsen/logrus v1.9.0 // indirect
 	gopkg.in/square/go-jose.v2 v2.6.0 // indirect
 )
@@ -27,6 +28,7 @@ require (
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
 	github.com/leodido/go-urn v1.2.2 // indirect
 	golang.org/x/crypto v0.7.0 // indirect
+	golang.org/x/exp v0.0.0-20230420155640-133eef4313cb
 	golang.org/x/sys v0.6.0 // indirect
 	golang.org/x/text v0.8.0 // indirect
 )

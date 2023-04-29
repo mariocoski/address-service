@@ -6,18 +6,19 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	useCase "github.com/mariocoski/address-service/internal/modules/addresses/application/deleteAddress"
+	address_repo "github.com/mariocoski/address-service/internal/modules/addresses/domain/repositories"
+
 	domain "github.com/mariocoski/address-service/internal/modules/addresses/domain"
 	"github.com/sirupsen/logrus"
 )
 
 type DeleteAddressController struct {
-	useCase useCase.DeleteAddressUseCase
+	addressesRepository address_repo.AddressesRepository
 }
 
-func NewController(useCase useCase.DeleteAddressUseCase) *DeleteAddressController {
+func NewController(addressesRepository address_repo.AddressesRepository) *DeleteAddressController {
 	return &DeleteAddressController{
-		useCase: useCase,
+		addressesRepository,
 	}
 }
 
@@ -34,7 +35,7 @@ func (c *DeleteAddressController) Handle(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	addressId, err := c.useCase.DeleteAddress(addressIdParam)
+	addressId, err := c.addressesRepository.Delete(addressIdParam)
 
 	// https://github.com/jackc/pgx/issues/474#issuecomment-549397821
 	if err != nil {

@@ -1,19 +1,14 @@
 package app
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
-	"github.com/getsentry/sentry-go"
 	sentryhttp "github.com/getsentry/sentry-go/http"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/mariocoski/address-service/internal/config"
-	create_address_use_case "github.com/mariocoski/address-service/internal/modules/addresses/application/createAddress"
-	delete_address_use_case "github.com/mariocoski/address-service/internal/modules/addresses/application/deleteAddress"
-	get_address_by_id_use_case "github.com/mariocoski/address-service/internal/modules/addresses/application/getAddressById"
-	get_addresses_use_case "github.com/mariocoski/address-service/internal/modules/addresses/application/getAddresses"
-	update_address_use_case "github.com/mariocoski/address-service/internal/modules/addresses/application/updateAddress"
 	address_repo "github.com/mariocoski/address-service/internal/modules/addresses/domain/repositories"
 	create_address_controller "github.com/mariocoski/address-service/internal/modules/addresses/infrastructure/controllers/createAddress"
 	delete_address_controller "github.com/mariocoski/address-service/internal/modules/addresses/infrastructure/controllers/deleteAddress"
@@ -29,23 +24,11 @@ const ADDRESSES_PATH = "/addresses"
 
 type Dependencies struct {
 	Config *config.Config
+	Logger logrus.Logger
 }
 
 func NewApplication(dependencies Dependencies) *chi.Mux {
-	err := sentry.Init(sentry.ClientOptions{
-		Dsn: dependencies.Config.SentryUrl,
-		// Debug: true,
-		// Set TracesSampleRate to 1.0 to capture 100%
-		// of transactions for performance monitoring.
-		// We recommend adjusting this value in production,
-		TracesSampleRate: 1.0,
-	})
-	if err != nil {
-		logrus.Fatalf("cannot initialise sentry %s", err)
-	}
-
-	// Flush buffered events before the program terminates.
-	defer sentry.Flush(2 * time.Second)
+	dependencies.Logger.WithField("b", 1).WithError(errors.New("This is error"))
 
 	sentryMiddleware := sentryhttp.New(sentryhttp.Options{
 		Repanic: true,
@@ -53,23 +36,18 @@ func NewApplication(dependencies Dependencies) *chi.Mux {
 
 	addressesRepository, err := address_repo.NewAddressesRepository(*dependencies.Config)
 
-	getAddressesUseCase := get_addresses_use_case.NewUseCase(addressesRepository)
-	getAddressesController := get_addresses_controller.NewController(getAddressesUseCase)
+	getAddressesController := get_addresses_controller.NewController(addressesRepository)
 
-	getAddressByIdUseCase := get_address_by_id_use_case.NewUseCase(addressesRepository)
-	getAddressByIdController := get_address_by_id_controller.NewController(getAddressByIdUseCase)
+	getAddressByIdController := get_address_by_id_controller.NewController(addressesRepository)
 
-	createAddressUseCase := create_address_use_case.NewUseCase(addressesRepository)
-	createAddressController := create_address_controller.NewController(createAddressUseCase)
+	createAddressController := create_address_controller.NewController(addressesRepository)
 
-	deleteAddressUseCase := delete_address_use_case.NewUseCase(addressesRepository)
-	deleteAddressController := delete_address_controller.NewController(deleteAddressUseCase)
+	deleteAddressController := delete_address_controller.NewController(addressesRepository)
 
-	updateAddressUseCase := update_address_use_case.NewUseCase(addressesRepository)
-	updateAddressController := update_address_controller.NewController(updateAddressUseCase)
+	updateAddressController := update_address_controller.NewController(addressesRepository)
 
 	if err != nil {
-		logrus.Fatal("cannot instantiate repo", err)
+		dependencies.Logger.Fatal("cannot instantiate repo", err)
 	}
 
 	mux := chi.NewRouter()

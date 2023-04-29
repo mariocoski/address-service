@@ -7,18 +7,19 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	useCase "github.com/mariocoski/address-service/internal/modules/addresses/application/getAddressById"
+	address_repo "github.com/mariocoski/address-service/internal/modules/addresses/domain/repositories"
+
 	domain "github.com/mariocoski/address-service/internal/modules/addresses/domain"
 	"github.com/sirupsen/logrus"
 )
 
 type GetAddressByIdController struct {
-	useCase useCase.GetAddressByIdUseCase
+	addressesRepository address_repo.AddressesRepository
 }
 
-func NewController(useCase useCase.GetAddressByIdUseCase) *GetAddressByIdController {
+func NewController(addressesRepository address_repo.AddressesRepository) *GetAddressByIdController {
 	return &GetAddressByIdController{
-		useCase: useCase,
+		addressesRepository,
 	}
 }
 
@@ -35,7 +36,7 @@ func (c *GetAddressByIdController) Handle(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	address, err := c.useCase.GetById(addressIdParam)
+	address, err := c.addressesRepository.GetById(addressIdParam)
 
 	if err != nil {
 		if errors.Is(err, domain.ErrAddressNotFound) {

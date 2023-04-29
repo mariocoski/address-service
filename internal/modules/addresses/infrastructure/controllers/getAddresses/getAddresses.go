@@ -5,17 +5,18 @@ import (
 	"net/http"
 	"strconv"
 
-	get_addresses_use_case "github.com/mariocoski/address-service/internal/modules/addresses/application/getAddresses"
+	address_repo "github.com/mariocoski/address-service/internal/modules/addresses/domain/repositories"
+
 	"github.com/sirupsen/logrus"
 )
 
 type GetAddressesController struct {
-	useCase *get_addresses_use_case.GetAddressesUseCase
+	addressesRepository address_repo.AddressesRepository
 }
 
-func NewController(useCase *get_addresses_use_case.GetAddressesUseCase) *GetAddressesController {
+func NewController(addressesRepository address_repo.AddressesRepository) *GetAddressesController {
 	return &GetAddressesController{
-		useCase: useCase,
+		addressesRepository,
 	}
 }
 
@@ -46,12 +47,7 @@ func (c *GetAddressesController) Handle(w http.ResponseWriter, r *http.Request) 
 		}
 	}
 
-	request := get_addresses_use_case.Request{
-		CurrentPage: currentPage,
-		PerPage:     perPage,
-	}
-
-	addressesPaginated, err := c.useCase.GetAddresses(request)
+	addressesPaginated, err := c.addressesRepository.GetAllPaginated(currentPage, perPage)
 
 	if err != nil {
 		logrus.Error(err.Error())

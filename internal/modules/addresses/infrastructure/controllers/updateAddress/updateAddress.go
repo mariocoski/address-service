@@ -7,18 +7,18 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	useCase "github.com/mariocoski/address-service/internal/modules/addresses/application/updateAddress"
 	domain "github.com/mariocoski/address-service/internal/modules/addresses/domain"
+	address_repo "github.com/mariocoski/address-service/internal/modules/addresses/domain/repositories"
 	"github.com/sirupsen/logrus"
 )
 
 type UpdateAddressController struct {
-	useCase useCase.UpdateAddressUseCase
+	useCase address_repo.AddressesRepository
 }
 
-func NewController(useCase useCase.UpdateAddressUseCase) *UpdateAddressController {
+func NewController(addressesRepository address_repo.AddressesRepository) *UpdateAddressController {
 	return &UpdateAddressController{
-		useCase: useCase,
+		addressesRepository,
 	}
 }
 
@@ -78,7 +78,7 @@ func (c *UpdateAddressController) Handle(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	updatedAddres, err := c.useCase.UpdateAddress(addressIdParam, addressPatch)
+	updatedAddres, err := c.useCase.Update(addressIdParam, addressPatch)
 
 	if err != nil {
 		if errors.Is(err, domain.ErrAddressNotFound) {
