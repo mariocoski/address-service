@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/getsentry/sentry-go"
 	address_repo "github.com/mariocoski/address-service/internal/modules/addresses/domain/repositories"
 
 	"github.com/sirupsen/logrus"
@@ -51,15 +52,16 @@ func (c *GetAddressesController) Handle(w http.ResponseWriter, r *http.Request) 
 
 	if err != nil {
 		logrus.Error(err.Error())
+		sentry.CaptureException(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	response, err := json.MarshalIndent(addressesPaginated, "", "  ")
-	// TODO: uncomment when done with development
-	// response, err := json.Marshal(addressesPaginated, "", "  ")
+	response, err := json.Marshal(addressesPaginated)
+
 	if err != nil {
 		logrus.Error(err.Error())
+		sentry.CaptureException(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

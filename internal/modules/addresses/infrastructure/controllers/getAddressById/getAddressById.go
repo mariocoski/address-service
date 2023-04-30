@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/getsentry/sentry-go"
 	"github.com/go-chi/chi/v5"
 	address_repo "github.com/mariocoski/address-service/internal/modules/addresses/domain/repositories"
 
@@ -30,8 +31,7 @@ func (c *GetAddressByIdController) Handle(w http.ResponseWriter, r *http.Request
 	logrus.Info(fmt.Sprintf(`GetAddressByIdController: received "addressId" url param: %v`, addressIdParam))
 
 	if addressIdParam == "" {
-		logrus.Errorf("missing addressId url param")
-
+		logrus.Errorf("GetAddressByIdController: missing addressId url param")
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		return
 	}
@@ -40,20 +40,21 @@ func (c *GetAddressByIdController) Handle(w http.ResponseWriter, r *http.Request
 
 	if err != nil {
 		if errors.Is(err, domain.ErrAddressNotFound) {
+			sentry.CaptureException(err)
+			logrus.Error("GetAddressByIdController: address not found", err)
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}
-
-		logrus.Errorf("cannot get address by id: %v, error: %v", addressIdParam, err)
+		sentry.CaptureException(err)
+		logrus.Errorf("GetAddressByIdController: cannot get address by id: %v, error: %v", addressIdParam, err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	response, err := json.MarshalIndent(address, "", "  ")
-	// TODO: uncomment when done with development
-	// response, err := json.Marshal(addresss, "", "  ")
+	response, err := json.Marshal(address)
 	if err != nil {
 		logrus.Error(err.Error())
+		sentry.CaptureException(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

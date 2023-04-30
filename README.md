@@ -4,9 +4,7 @@ Simple microservice written in golang to handle CRUD operations on Address domai
 
 # TODO:
 
-- adjust project layout (https://github.com/golang-standards/project-layout) 
-- make sure sentry is congigured with logger
-- add and configure logger with sentry
+- adjust project layout (https://github.com/golang-standards/project-layout)   
 - improve authentication middleware 
 - add tests
 

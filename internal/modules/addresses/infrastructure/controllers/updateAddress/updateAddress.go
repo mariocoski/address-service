@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/getsentry/sentry-go"
 	"github.com/go-chi/chi/v5"
 	domain "github.com/mariocoski/address-service/internal/modules/addresses/domain"
 	address_repo "github.com/mariocoski/address-service/internal/modules/addresses/domain/repositories"
@@ -13,7 +14,7 @@ import (
 )
 
 type UpdateAddressController struct {
-	useCase address_repo.AddressesRepository
+	addressesRepository address_repo.AddressesRepository
 }
 
 func NewController(addressesRepository address_repo.AddressesRepository) *UpdateAddressController {
@@ -30,7 +31,6 @@ func (c *UpdateAddressController) Handle(w http.ResponseWriter, r *http.Request)
 
 	if addressIdParam == "" {
 		logrus.Error("UpdateAddressController: missing addressId url param")
-
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		return
 	}
@@ -43,6 +43,7 @@ func (c *UpdateAddressController) Handle(w http.ResponseWriter, r *http.Request)
 	err := decoder.Decode(&addressPatch)
 
 	if err != nil {
+		sentry.CaptureException(err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -78,9 +79,10 @@ func (c *UpdateAddressController) Handle(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	updatedAddres, err := c.useCase.Update(addressIdParam, addressPatch)
+	updatedAddres, err := c.addressesRepository.Update(addressIdParam, addressPatch)
 
 	if err != nil {
+		sentry.CaptureException(err)
 		if errors.Is(err, domain.ErrAddressNotFound) {
 			w.WriteHeader(http.StatusNotFound)
 			return
@@ -91,11 +93,10 @@ func (c *UpdateAddressController) Handle(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	response, err := json.MarshalIndent(updatedAddres, "", "  ")
-	// TODO: uncomment when done with development
-	// response, err := json.Marshal(addresss, "", "  ")
+	response, err := json.Marshal(updatedAddres)
 	if err != nil {
-		logrus.Error("message")
+		sentry.CaptureException(err)
+		logrus.Error("UpdateAddressController: ", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

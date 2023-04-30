@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/getsentry/sentry-go"
 	"github.com/go-chi/chi/v5"
 	address_repo "github.com/mariocoski/address-service/internal/modules/addresses/domain/repositories"
 
@@ -29,22 +30,21 @@ func (c *DeleteAddressController) Handle(w http.ResponseWriter, r *http.Request)
 	logrus.Infof(`DeleteAddressController: received "addressId" url param: %v`, addressIdParam)
 
 	if addressIdParam == "" {
-		logrus.Error("invalid addressId url param")
-
+		logrus.Error("DeleteAddressController: invalid addressId url param")
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		return
 	}
 
 	addressId, err := c.addressesRepository.Delete(addressIdParam)
 
-	// https://github.com/jackc/pgx/issues/474#issuecomment-549397821
 	if err != nil {
 		if errors.Is(err, domain.ErrAddressNotFound) {
+			sentry.CaptureException(err)
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}
-
-		logrus.Errorf("cannot delete address by id: %v, error: %v", addressId, err)
+		sentry.CaptureException(err)
+		logrus.Errorf("DeleteAddressController: cannot delete address by id: %v, error: %v", addressId, err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -54,11 +54,11 @@ func (c *DeleteAddressController) Handle(w http.ResponseWriter, r *http.Request)
 		Id: addressId,
 	}
 
-	responseJson, err := json.MarshalIndent(response, "", "  ")
-	// TODO: uncomment when done with development
-	// responseJson, err := json.Marshal(response, "", "  ")
+	responseJson, err := json.Marshal(response)
+
 	if err != nil {
 		logrus.Error(err.Error())
+		sentry.CaptureException(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

@@ -1,7 +1,6 @@
 package app
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
@@ -24,11 +23,9 @@ const ADDRESSES_PATH = "/addresses"
 
 type Dependencies struct {
 	Config *config.Config
-	Logger logrus.Logger
 }
 
 func NewApplication(dependencies Dependencies) *chi.Mux {
-	dependencies.Logger.WithField("b", 1).WithError(errors.New("This is error"))
 
 	sentryMiddleware := sentryhttp.New(sentryhttp.Options{
 		Repanic: true,
@@ -47,7 +44,7 @@ func NewApplication(dependencies Dependencies) *chi.Mux {
 	updateAddressController := update_address_controller.NewController(addressesRepository)
 
 	if err != nil {
-		dependencies.Logger.Fatal("cannot instantiate repo", err)
+		logrus.Fatal("cannot instantiate repo", err)
 	}
 
 	mux := chi.NewRouter()

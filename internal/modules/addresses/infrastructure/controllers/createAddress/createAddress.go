@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/getsentry/sentry-go"
 	validator "github.com/go-playground/validator/v10"
 	domain "github.com/mariocoski/address-service/internal/modules/addresses/domain"
 	address_repo "github.com/mariocoski/address-service/internal/modules/addresses/domain/repositories"
@@ -31,6 +32,7 @@ func (c *CreateAddressController) Handle(w http.ResponseWriter, r *http.Request)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		sentry.CaptureException(err)
 		return
 	}
 
@@ -48,16 +50,17 @@ func (c *CreateAddressController) Handle(w http.ResponseWriter, r *http.Request)
 	// https://github.com/jackc/pgx/issues/474#issuecomment-549397821
 
 	if err != nil {
-		logrus.Error("CreateAddressController useCase: " + err.Error())
+		logrus.Error("CreateAddressController repo: " + err.Error())
+		sentry.CaptureException(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	response, err := json.MarshalIndent(createdAddress, "", "  ")
-	// TODO: uncomment when done with development
-	// response, err := json.Marshal(createdAddress, "", "  ")
+	response, err := json.Marshal(createdAddress)
+
 	if err != nil {
 		logrus.Error("CreateAddressController json marshalling: " + err.Error())
+		sentry.CaptureException(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
