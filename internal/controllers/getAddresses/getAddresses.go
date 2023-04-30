@@ -6,7 +6,7 @@ import (
 	"strconv"
 
 	"github.com/getsentry/sentry-go"
-	address_repo "github.com/mariocoski/address-service/internal/modules/addresses/domain/repositories"
+	address_repo "github.com/mariocoski/address-service/internal/domain/repositories"
 
 	"github.com/sirupsen/logrus"
 )

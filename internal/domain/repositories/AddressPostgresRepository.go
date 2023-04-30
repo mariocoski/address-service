@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/jackc/pgx/v5"
-	domain "github.com/mariocoski/address-service/internal/modules/addresses/domain"
+	domain "github.com/mariocoski/address-service/internal/domain"
 	"github.com/mariocoski/address-service/internal/shared/core/pagination"
 )
 

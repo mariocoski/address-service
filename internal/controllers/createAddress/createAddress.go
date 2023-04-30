@@ -6,8 +6,8 @@ import (
 
 	"github.com/getsentry/sentry-go"
 	validator "github.com/go-playground/validator/v10"
-	domain "github.com/mariocoski/address-service/internal/modules/addresses/domain"
-	address_repo "github.com/mariocoski/address-service/internal/modules/addresses/domain/repositories"
+	domain "github.com/mariocoski/address-service/internal/domain"
+	address_repo "github.com/mariocoski/address-service/internal/domain/repositories"
 	"github.com/sirupsen/logrus"
 )
 
@@ -45,9 +45,6 @@ func (c *CreateAddressController) Handle(w http.ResponseWriter, r *http.Request)
 	}
 
 	createdAddress, err := c.addressesRepository.Save(address)
-
-	// handle not found error with 429
-	// https://github.com/jackc/pgx/issues/474#issuecomment-549397821
 
 	if err != nil {
 		logrus.Error("CreateAddressController repo: " + err.Error())

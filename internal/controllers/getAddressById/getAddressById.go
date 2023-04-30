@@ -3,14 +3,13 @@ package get_address_by_id_controller
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/getsentry/sentry-go"
 	"github.com/go-chi/chi/v5"
-	address_repo "github.com/mariocoski/address-service/internal/modules/addresses/domain/repositories"
+	address_repo "github.com/mariocoski/address-service/internal/domain/repositories"
 
-	domain "github.com/mariocoski/address-service/internal/modules/addresses/domain"
+	domain "github.com/mariocoski/address-service/internal/domain"
 	"github.com/sirupsen/logrus"
 )
 
@@ -28,7 +27,7 @@ func (c *GetAddressByIdController) Handle(w http.ResponseWriter, r *http.Request
 
 	addressIdParam := chi.URLParam(r, "addressID")
 
-	logrus.Info(fmt.Sprintf(`GetAddressByIdController: received "addressId" url param: %v`, addressIdParam))
+	logrus.Infof(`GetAddressByIdController: received "addressId" url param: %v`, addressIdParam)
 
 	if addressIdParam == "" {
 		logrus.Errorf("GetAddressByIdController: missing addressId url param")
@@ -41,7 +40,9 @@ func (c *GetAddressByIdController) Handle(w http.ResponseWriter, r *http.Request
 	if err != nil {
 		if errors.Is(err, domain.ErrAddressNotFound) {
 			sentry.CaptureException(err)
-			logrus.Error("GetAddressByIdController: address not found", err)
+			logrus.WithField(
+				"addressId", addressIdParam,
+			).Error("GetAddressByIdController: address not found")
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}

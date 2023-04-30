@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/mariocoski/address-service/internal/config"
-	domain "github.com/mariocoski/address-service/internal/modules/addresses/domain"
+	domain "github.com/mariocoski/address-service/internal/domain"
 	"github.com/mariocoski/address-service/internal/shared/core/pagination"
 	"github.com/mariocoski/address-service/internal/shared/database/postgres_driver"
 )

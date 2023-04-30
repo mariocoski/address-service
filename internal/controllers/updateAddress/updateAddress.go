@@ -8,8 +8,8 @@ import (
 
 	"github.com/getsentry/sentry-go"
 	"github.com/go-chi/chi/v5"
-	domain "github.com/mariocoski/address-service/internal/modules/addresses/domain"
-	address_repo "github.com/mariocoski/address-service/internal/modules/addresses/domain/repositories"
+	domain "github.com/mariocoski/address-service/internal/domain"
+	address_repo "github.com/mariocoski/address-service/internal/domain/repositories"
 	"github.com/sirupsen/logrus"
 )
 

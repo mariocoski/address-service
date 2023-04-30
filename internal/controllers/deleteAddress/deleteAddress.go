@@ -7,9 +7,9 @@ import (
 
 	"github.com/getsentry/sentry-go"
 	"github.com/go-chi/chi/v5"
-	address_repo "github.com/mariocoski/address-service/internal/modules/addresses/domain/repositories"
+	address_repo "github.com/mariocoski/address-service/internal/domain/repositories"
 
-	domain "github.com/mariocoski/address-service/internal/modules/addresses/domain"
+	domain "github.com/mariocoski/address-service/internal/domain"
 	"github.com/sirupsen/logrus"
 )
 
@@ -44,7 +44,7 @@ func (c *DeleteAddressController) Handle(w http.ResponseWriter, r *http.Request)
 			return
 		}
 		sentry.CaptureException(err)
-		logrus.Errorf("DeleteAddressController: cannot delete address by id: %v, error: %v", addressId, err)
+		logrus.WithField("addressId", addressId).WithError(err).Error("DeleteAddressController: cannot delete address by id")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
