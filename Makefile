@@ -51,7 +51,7 @@ install:
 
 .PHONY: docker-up
 docker-up:
-	docker-compose up --build --force-recreate --no-deps -d
+	docker-compose up --build  --no-deps -d
 	echo 'Waiting for db\n'
 	sleep 1
 	(until curl http://localhost:5432/ 2>&1 | grep '52' > /dev/null; do sleep 1; done) || true

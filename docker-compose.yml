@@ -1,25 +1,51 @@
 version: '3.8'
 services:
-  db:
+  postgresdb:
+    container_name: postgresdb
     image: postgres:14.1-alpine
-    restart: always
+    restart: unless-stopped
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgrespassword
     ports:
       - '5432:5432'
+    networks:
+      - address-service-network
     volumes: 
-      - db:/var/lib/postgresql/data 
+      - postgresdb:/var/lib/postgresql/data 
+  mongodb:
+    container_name: mongodb
+    restart: unless-stopped
+    image: mariocoski/mongo-enterprise:5.0
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=password
+    ports:
+      - '27017:27017'
+    networks:
+      - address-service-network
+    volumes:
+      - mongodb:/data/db
+      - ./mongo/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    command: mongod
   api:
     build: .
+    restart: unless-stopped
     command: ["air"]
     ports:
       - "7000:7000"
     volumes:
       - ./:/app
+    networks:
+      - address-service-network
     depends_on:
-      - db 
+      - postgresdb
+      - mongodb 
     env_file:
       - .env
 volumes:
-  db:
+  postgresdb:
+  mongodb:
+networks:
+  address-service-network:
+    driver: bridge
